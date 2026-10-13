@@ -18,7 +18,6 @@ import audiB6 from '@/assets/audi-a4-b6.jpg.asset.json';
 import touran from '@/assets/vw-touran.jpg.asset.json';
 import chery from '@/assets/chery-tiggo.png.asset.json';
 import toyota from '@/assets/toyota-starlet.jpg.asset.json';
-import audiB5 from '@/assets/audi-a4-b5.jpg.asset.json';
 
 export const categories = [
   {name:'Brake Parts', image:brakes.url},
@@ -46,12 +45,20 @@ export const products:Product[] = [
   {id:'VAS-100012', name:'VW Golf / Jetta / Touran Front Suspension Kit', brand:'Volkswagen', model:'Golf / Jetta / Touran', price:8989, image:touran.url, category:suspensionCategory},
   {id:'VAS-101001', name:'Chery Tiggo 4 Pro 1.5 Front Suspension Kit', brand:'Chery', model:'Tiggo', price:1782.96, image:chery.url, category:suspensionCategory, badge:'NEW ARRIVAL'},
   {id:'VAS-100991', name:'Toyota Starlet & Suzuki Baleno Front Suspension Kit', brand:'Toyota / Suzuki', model:'Starlet / Baleno', price:3030, image:toyota.url, category:suspensionCategory},
-  {id:'VAS-100989', name:'Audi A4 B5 & VW Passat Front Suspension Kit', brand:'Volkswagen / Audi', model:'A4 / Passat', price:3498, image:audiB5.url, category:suspensionCategory},
 ];
 export const money=(value:number)=>new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR',minimumFractionDigits:2}).format(value);
-export function filterProducts(query:string, category='All categories', make='', model='') {
+const fitmentYears:Record<string,[number,number]>={
+  'VAS-100009':[2003,2015], 'VAS-100169':[2006,2014], 'VAS-101000':[2020,2026],
+  'VAS-100049':[2008,2026], 'VAS-100990':[2016,2026], 'VAS-100971':[2008,2015],
+  'VAS-100051':[2000,2009], 'VAS-100012':[2003,2015], 'VAS-101001':[2021,2026],
+  'VAS-100991':[2020,2026],
+};
+export function filterProducts(query:string, category='All categories', make='', model='', year='') {
   const term=query.trim().toLowerCase();
-  return products.filter(p=>(!term || `${p.name} ${p.id} ${p.brand}`.toLowerCase().includes(term)) && (category==='All categories'||p.category===category) && (!make||p.brand.includes(make)) && (!model||p.model.includes(model)));
+  return products.filter(p=>{
+    const years=fitmentYears[p.id];
+    return (!term || `${p.name} ${p.id} ${p.brand}`.toLowerCase().includes(term)) && (category==='All categories'||p.category===category) && (!make||p.brand.includes(make)) && (!model||p.model.includes(model)) && (!year||!years||(Number(year)>=years[0]&&Number(year)<=years[1]));
+  });
 }
 export function basketTotal(basket:Record<string,number>) {
   return products.reduce((total,p)=>total+p.price*(basket[p.id]??0),0);

@@ -37,6 +37,7 @@ function Index() {
   const [year,setYear]=useState('');
   const [activeMake,setActiveMake]=useState('');
   const [activeModel,setActiveModel]=useState('');
+  const [activeYear,setActiveYear]=useState('');
   const [tab,setTab]=useState('Featured products');
   const [slide,setSlide]=useState(0);
   const [selected,setSelected]=useState<Product|null>(null);
@@ -44,10 +45,10 @@ function Index() {
   const [basketOpen,setBasketOpen]=useState(false);
   const [notice,setNotice]=useState('');
   const basketCount=Object.values(basket).reduce((a,b)=>a+b,0);
-  const visibleProducts=filterProducts(activeQuery,activeCategory,activeMake,activeModel).filter(p=>tab!=='New arrivals'||p.badge==='NEW ARRIVAL');
+  const visibleProducts=filterProducts(activeQuery,activeCategory,activeMake,activeModel,activeYear).filter(p=>tab!=='New arrivals'||p.badge==='NEW ARRIVAL');
   const isFiltered=activeQuery||activeCategory!=='All categories'||activeMake;
   function scrollTo(id:string) { document.getElementById(id)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
-  function browse(category='All categories',search='') { setActiveCategory(category);setActiveQuery(search);setActiveMake('');setActiveModel('');setTab('Featured products');scrollTo('products'); }
+  function browse(category='All categories',search='') { setActiveCategory(category);setActiveQuery(search);setActiveMake('');setActiveModel('');setActiveYear('');setTab('Featured products');scrollTo('products'); }
   function add(product:Product) { setBasket(b=>({...b,[product.id]:(b[product.id]??0)+1}));setNotice(`${product.name} added to your basket`); }
   function changeQuantity(id:string,amount:number) { setBasket(b=>{const next={...b};const quantity=(next[id]??0)+amount;if(quantity<=0)delete next[id];else next[id]=quantity;return next;}); }
   const enquiry=encodeURIComponent('Hi Vuma Auto Spares, I would like to enquire about:\n'+products.filter(p=>basket[p.id]).map(p=>`${basket[p.id]} × ${p.name}`).join('\n'));
@@ -83,7 +84,7 @@ function Index() {
         {[[ShieldCheck,'Quality auto parts','The parts your vehicle deserves'],[CarFront,'All makes & models','Everyday cars to workhorses'],[MapPin,'Two local stores','Pretoria West & Mabopane'],[MessageCircle,'Expert parts advice','Let’s find your perfect fit']].map(([Icon,title,subtitle])=>{const ServiceIcon=Icon as typeof ShieldCheck;return <div className="service-item" key={String(title)}><ServiceIcon/><div><strong>{String(title)}</strong><span>{String(subtitle)}</span></div></div>;})}
       </div></section>
 
-      <section className="vehicle-band"><div className="wrap vehicle-inner"><div className="vehicle-title"><CarFront/><div><h2>Find parts for your vehicle</h2><p>The right part starts with the right fit.</p></div></div><form className="vehicle-form" onSubmit={e=>{e.preventDefault();setActiveCategory('All categories');setActiveQuery('');setActiveMake(make);setActiveModel(model);setTab('Featured products');scrollTo('products');}}>
+      <section className="vehicle-band" id="vehicle-finder"><div className="wrap vehicle-inner"><div className="vehicle-title"><CarFront/><div><h2>Find parts for your vehicle</h2><p>The right part starts with the right fit.</p></div></div><form className="vehicle-form" onSubmit={e=>{e.preventDefault();setActiveCategory('All categories');setActiveQuery('');setActiveMake(make);setActiveModel(model);setActiveYear(year);setTab('Featured products');scrollTo('products');}}>
         <select aria-label="Vehicle make" value={make} onChange={e=>{setMake(e.target.value);setModel('');}} required><option value="">Select make</option>{Object.keys(models).map(m=><option key={m}>{m}</option>)}</select>
         <select aria-label="Vehicle model" value={model} disabled={!make} onChange={e=>setModel(e.target.value)}><option value="">Select model</option>{(models[make]??[]).map(m=><option key={m}>{m}</option>)}</select>
         <select aria-label="Vehicle year" value={year} onChange={e=>setYear(e.target.value)}><option value="">Select year</option>{Array.from({length:33},(_,i)=>2026-i).map(y=><option key={y}>{y}</option>)}</select>
@@ -98,7 +99,7 @@ function Index() {
         <p className="text-[10px] text-muted-foreground mt-6">Showcase catalogue · Reference-store prices shown for illustration. Availability and vehicle compatibility to be confirmed with Vuma.</p>
       </div></section>
 
-      <section className="wrap store-section"><div className="section-heading"><div><h2>Shop popular models</h2><p>Your vehicle. Your parts. Your next adventure.</p></div><Button variant="link" className="section-link" onClick={()=>{document.querySelector<HTMLSelectElement>('[aria-label="Vehicle make"]')?.focus();scrollTo('categories');}}>Find my vehicle <ArrowRight size={14}/></Button></div><div className="models-grid">{[{name:'Volkswagen Golf',query:'Golf',image:golf.url},{name:'Ford Ranger',query:'Ford Ranger',image:ranger.url},{name:'Audi A3',query:'A3',image:audi.url}].map(m=><article className="model-card" key={m.name}><img src={m.image} alt={`Parts for ${m.name}`} loading="lazy"/><Button variant="ghost" className="model-name" onClick={()=>browse('All categories',m.query)}>{m.name}<ArrowRight size={16}/></Button></article>)}</div></section>
+      <section className="wrap store-section"><div className="section-heading"><div><h2>Shop popular models</h2><p>Your vehicle. Your parts. Your next adventure.</p></div><Button variant="link" className="section-link" onClick={()=>{scrollTo('vehicle-finder');document.querySelector<HTMLSelectElement>('[aria-label="Vehicle make"]')?.focus({preventScroll:true});}}>Find my vehicle <ArrowRight size={14}/></Button></div><div className="models-grid">{[{name:'Volkswagen Golf',query:'Golf',image:golf.url},{name:'Ford Ranger',query:'Ford Ranger',image:ranger.url},{name:'Audi A3',query:'A3',image:audi.url}].map(m=><article className="model-card" key={m.name}><img src={m.image} alt={`Parts for ${m.name}`} loading="lazy"/><Button variant="ghost" className="model-name" onClick={()=>browse('All categories',m.query)}>{m.name}<ArrowRight size={16}/></Button></article>)}</div></section>
 
       <section className="brand-band" aria-label="Auto brands"><div className="wrap brand-row"><small>PARTS FOR THE BRANDS YOU DRIVE</small>{['VOLKSWAGEN','TOYOTA','FORD','BMW','AUDI','HYUNDAI','NISSAN'].map(b=><span key={b}>{b}</span>)}</div></section>
       <section className="contact-band"><div className="wrap contact-inner"><div><h2>Not sure which part you need?</h2><p>Send our team your vehicle details. We’ll help you find the right fit.</p></div><Button variant="secondary" asChild><a href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={18}/> CHAT WITH US <ArrowRight size={15}/></a></Button></div></section>
