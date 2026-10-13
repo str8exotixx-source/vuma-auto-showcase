@@ -139,12 +139,11 @@ export const products: Product[] = [
     category: suspensionCategory,
   },
 ];
-export const money = (value: number) =>
-  new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency: "ZAR",
-    minimumFractionDigits: 2,
-  }).format(value);
+// Explicit separators keep prices identical across browser and edge ICU locales.
+export const money = (value: number) => {
+  const [whole, fraction] = value.toFixed(2).split('.');
+  return `R ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction}`;
+};
 const fitmentYears: Record<string, [number, number]> = {
   "VAS-100009": [2003, 2015],
   "VAS-100169": [2006, 2014],
