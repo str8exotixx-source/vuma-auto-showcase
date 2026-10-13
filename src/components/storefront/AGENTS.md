@@ -1,0 +1,1 @@
+- Use the project Button component for storefront commands, and use linked imagery or accessible interactive containers only for browseable item tiles.
